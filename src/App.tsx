@@ -1,17 +1,66 @@
+import { useState, useEffect } from "react";
+import { IRecipe } from "./Interfaces";
+import RecipeTagList from "./components/RecipeTagList";
+import RecipeList from "./components/RecipeList";
 
 const App = () => {
+  const [tags, setTags] = useState<string[]>([]);
+  const [recipes, setRecipes] = useState<IRecipe[]>([]);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
+  useEffect(() => {
+    fetch("https://dummyjson.com/recipes/tags")
+      .then((response) => response.json())
+      .then((data) => setTags(data));
+  }, []);
+
+  useEffect(() => {
+    if (selectedTag) {
+      fetch(`https://dummyjson.com/recipes/tag/${selectedTag}`)
+        .then((response) => response.json())
+        .then((data) => setRecipes(data.recipes));
+    }
+  }, [selectedTag]);
+
+  const handleSelectTag = (tagName: string) => {
+    setSelectedTag(tagName);
+  };
+
+  const handleBackToTags = () => {
+    setSelectedTag(null);
+    setRecipes([]);
+  };
 
   return (
-    <div>
+    <div
+      style={{
+        width: "100vw",
+        minHeight: "100vh",
+        margin: "0 auto",
+        backgroundColor: "white",
+        color: "black",
+      }}
+    >
+      <div style={{ maxWidth: "800px", margin: "0 auto" }}>
         <h1>ACME Recipe O'Master</h1>
-        <div>Remove this and implement recipe tag list here. </div>
-        <ul>
-        <li>On start the application displays a list of recipe tags such as 'pasta', 'cookies' etc. The tag information is loaded from an API (https://dummyjson.com/recipes/tags)</li>
-        <li> The user can click on a tag and the application will then hide the tag list and display a list of recipes matching the selected tag. The recipe information for the clicked tag is loaded from an API (https://dummyjson.com/recipes/tag/Pizza).</li>
-        <li> User can also go back to the tag list. </li>
-        <li> Each receipe is displayed as box where recipe data such as ingredients and instructions are displayed</li>
-        </ul>
+        {selectedTag ? (
+          <div
+            style={{
+              minHeight: "100vh",
+            }}
+          >
+            <button onClick={handleBackToTags}>Back to Tags</button>
+            <RecipeList recipes={recipes} />
+          </div>
+        ) : (
+          <div>
+            <p style={{ fontWeight: "bold", fontSize: "20px" }}>
+              Choose a tag below
+            </p>
+            <RecipeTagList tagList={tags} onSelectTag={handleSelectTag} />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
